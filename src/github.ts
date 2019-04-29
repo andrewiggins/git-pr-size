@@ -33,20 +33,25 @@ export const createFetch = (token: string) => (query: string) => {
 	});
 };
 
-export interface PRsRes {
+export interface Commit {
+	oid: string;
+}
+
+export interface PullRequest {
 	mergedAt: string;
 	author: {
 		login: string;
 	};
 	title: string;
 	number: number;
+	mergeCommit: Commit;
 }
 
-export async function fetchPRs(
+export async function fetchMasterPRs(
 	request: (query: string) => any,
 	repo: string,
 	count: number
-): Promise<PRsRes[]> {
+): Promise<PullRequest[]> {
 	const [owner, name] = repo.split("/");
 
 	// GitHub has a limit of 100 items per page
@@ -58,7 +63,7 @@ export async function fetchPRs(
 	const data = await request(`
 		  {
 			  repository(name: "${name}", owner: "${owner}") {
-				  pullRequests(states: MERGED, last: ${count}, orderBy: {field: CREATED_AT, direction: ASC}) {
+				  pullRequests(states: MERGED, last: ${count}, baseRefName: "master" orderBy: {field: CREATED_AT, direction: ASC}) {
 					  nodes {
 						  mergedAt
 						  author {
@@ -66,13 +71,14 @@ export async function fetchPRs(
 						  }
 						  title
 						  number
+						  mergeCommit {
+							  oid
+						  }
 					  }
 				  }
 			  }
 		  }
 	`);
-
-	console.log(data);
 
 	return data.data.repository.pullRequests.nodes;
 }
