@@ -9,9 +9,8 @@ export interface Commit {
 	subject: string;
 }
 
-const defaultArgs = "--first-parent";
-const logFormat = ' --pretty="format:%H %s" ';
-function getLogCommand(oldArgs = defaultArgs) {
+const logFormat = ' --pretty="format:%H %s" --first-parent ';
+function getLogCommand(oldArgs = '') {
 	const i = oldArgs.search(/(?:\W|^)--(?:\W|$)/);
 	const cmd = "git log ";
 
