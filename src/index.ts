@@ -38,18 +38,9 @@ async function getCommitsTest() {
 		console.log(commit.oid == prCommit.oid, commit.oid, prCommit.oid);
 	}
 
-	const iter = determineSizes({
-		getCommits: async function*() {
-			yield* (await getCommits()).map(commit => commit.oid);
-		},
-		async getSize() {
-			return Promise.resolve(Math.floor(Math.random() * 10 + 1));
-		}
-	});
-
-	for await (const sizeInfo of iter) {
-		console.log(sizeInfo);
-	}
+	const getSize = () => Promise.resolve(Math.floor(Math.random() * 10 + 1));
+	const sizes = await determineSizes(commits.map(c => c.oid), getSize);
+	console.log(sizes);
 }
 
 // getPRs();

@@ -1,22 +1,19 @@
-interface Config {
-	getCommits(): AsyncIterable<string>;
-	getSize(commit: string): Promise<number>;
-}
-
 interface CommitSize {
 	oid: string;
 	size: number;
 	sizeDiff: number;
 }
 
-export async function* determineSizes({
-	getCommits,
-	getSize
-}: Config): AsyncIterable<CommitSize> {
+export async function determineSizes(
+	commits: string[],
+	getSize: (commit: string) => Promise<number>
+): Promise<CommitSize[]> {
+	const result = [];
+
 	let prevSize: number | null = null;
-	for await (let commit of getCommits()) {
+	for (let commit of commits) {
 		const size = await getSize(commit);
-		yield ({
+		result.push({
 			oid: commit,
 			size: size,
 			sizeDiff: prevSize == null ? 0 : size - prevSize
@@ -24,4 +21,6 @@ export async function* determineSizes({
 
 		prevSize = size;
 	}
+
+	return result;
 }
