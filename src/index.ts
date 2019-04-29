@@ -38,5 +38,5 @@ async function getCommitsTest() {
 	}
 }
 
-// getPRs();
+getPRs();
 getCommitsTest();

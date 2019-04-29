@@ -37,7 +37,6 @@ function parseLogOutput(stdout: string): Commit[] {
 
 export async function getCommits(logArgs?: string, options?: ExecOptions): Promise<Commit[]> {
 	const cmd = getLogCommand(logArgs);
-	console.log(cmd);
 	const { stdout } = await execAsync(cmd, options);
 	return parseLogOutput(stdout.toString());
 }

@@ -2,7 +2,80 @@
 
 import fetch from "isomorphic-unfetch";
 
-type Fetcher = (query: string, variables?: any) => Promise<any>;
+export type Fetcher = (query: string, variables?: any) => Promise<any>;
+
+export interface Commit {
+	oid: string;
+}
+
+export interface PullRequest {
+	mergedAt: string;
+	author: {
+		login: string;
+	};
+	title: string;
+	number: number;
+	mergeCommit: Commit;
+}
+
+const queries = {
+	getPRs: `
+		query ($name: String!, $owner: String!, $count: Int) {
+			repository(name: $name, owner: $owner) {
+				pullRequests(states: MERGED, last: $count, baseRefName: "master" orderBy: {field: CREATED_AT, direction: ASC}) {
+					nodes {
+						mergedAt
+						author {
+							login
+						}
+						title
+						number
+						mergeCommit {
+							oid
+						}
+					}
+				}
+			}
+		}`,
+	getAssociatedPRs: `
+		query ($name: String!, $owner: String!, $rev: String, $count: Int) {
+			repository(name: $name, owner: $owner) {
+				object(expression: $rev) {
+					... on Commit {
+						oid
+						associatedPullRequests(last: $count, orderBy: {field: CREATED_AT, direction: ASC}) {
+							totalCount
+							nodes {
+								mergedAt
+								author {
+									login
+								}
+								title
+								number
+								mergeCommit {
+									oid
+								}
+							}
+						}
+					}
+				}
+			}
+		}`
+};
+
+interface GetAssociatedPRsResult {
+	data: {
+		repository: {
+			object: {
+				oid: string;
+				associatedPullRequests: {
+					totalCount: number;
+					nodes: PullRequest[];
+				};
+			};
+		};
+	};
+}
 
 /**
  * Create an easy to use Promise-based function to query the backend
@@ -40,22 +113,8 @@ export function createFetch(token: string): Fetcher {
 	};
 }
 
-export interface Commit {
-	oid: string;
-}
-
-export interface PullRequest {
-	mergedAt: string;
-	author: {
-		login: string;
-	};
-	title: string;
-	number: number;
-	mergeCommit: Commit;
-}
-
 export async function fetchMasterPRs(
-	request: (query: string) => Promise<any>,
+	request: Fetcher,
 	repo: string,
 	count: number
 ): Promise<PullRequest[]> {
@@ -67,25 +126,11 @@ export async function fetchMasterPRs(
 	}
 
 	const [owner, name] = repo.split("/");
-	const data = await request(`
-		  query {
-			  repository(name: "${name}", owner: "${owner}") {
-				  pullRequests(states: MERGED, last: ${count}, baseRefName: "master" orderBy: {field: CREATED_AT, direction: ASC}) {
-					  nodes {
-						  mergedAt
-						  author {
-							  login
-						  }
-						  title
-						  number
-						  mergeCommit {
-							  oid
-						  }
-					  }
-				  }
-			  }
-		  }
-	`);
+	const data = await request(queries.getPRs, {
+		owner,
+		name,
+		count
+	});
 
 	return data.data.repository.pullRequests.nodes;
 }
@@ -96,20 +141,6 @@ export async function fetchAssociatedPRs(
 	repo: string,
 	count: number = 1
 ): Promise<PullRequest[]> {
-	interface QueryResult {
-		data: {
-			repository: {
-				object: {
-					oid: string;
-					associatedPullRequests: {
-						totalCount: number;
-						nodes: PullRequest[];
-					};
-				};
-			};
-		};
-	}
-
 	// GitHub has a limit of 100 items per page
 	if (count > 100) {
 		throw new Error(
@@ -118,32 +149,12 @@ export async function fetchAssociatedPRs(
 	}
 
 	const [owner, name] = repo.split("/");
-	const data: QueryResult = await request(
-		`query ($name: String!, $owner: String!, $rev: String, $count: Int) {
-			repository(name: $name, owner: $owner) {
-				object(expression: $rev) {
-					... on Commit {
-						oid
-						associatedPullRequests(last: $count, orderBy: {field: CREATED_AT, direction: ASC}) {
-							totalCount
-							nodes {
-								mergedAt
-								author {
-									login
-								}
-								title
-								number
-								mergeCommit {
-									oid
-								}
-							}
-						}
-					}
-				}
-			}
-		}`,
-		{ rev, owner, name, count }
-	);
+	const data: GetAssociatedPRsResult = await request(queries.getAssociatedPRs, {
+		rev,
+		owner,
+		name,
+		count
+	});
 
 	return data.data.repository.object.associatedPullRequests.nodes;
 }
