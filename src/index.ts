@@ -2,6 +2,7 @@ import * as path from "path";
 import { readFileSync } from "fs";
 import { createFetch, fetchMasterPRs, fetchAssociatedPRs } from "./github";
 import { getCommits } from "./git";
+import { determineSizes } from "./size";
 
 const access_token = readFileSync(
 	path.join(__dirname, ".access_token"),
@@ -36,7 +37,20 @@ async function getCommitsTest() {
 		let prCommit = prs[i].mergeCommit;
 		console.log(commit.oid == prCommit.oid, commit.oid, prCommit.oid);
 	}
+
+	const iter = determineSizes({
+		getCommits: async function*() {
+			yield* (await getCommits()).map(commit => commit.oid);
+		},
+		async getSize() {
+			return Promise.resolve(Math.floor(Math.random() * 10 + 1));
+		}
+	});
+
+	for await (const sizeInfo of iter) {
+		console.log(sizeInfo);
+	}
 }
 
-getPRs();
+// getPRs();
 getCommitsTest();
