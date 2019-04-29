@@ -1,6 +1,6 @@
 import * as path from "path";
 import { readFileSync } from "fs";
-import { createFetch, fetchMasterPRs } from "./github";
+import { createFetch, fetchMasterPRs, fetchAssociatedPRs } from "./github";
 import { getCommits } from "./git";
 
 const access_token = readFileSync(
@@ -16,8 +16,26 @@ async function getPRs() {
 }
 
 async function getCommitsTest() {
-	const commits = await getCommits('-n 6 -- ./src', { cwd: "D:/github/developit/preact" });
+	const commits = await getCommits("-n 6 --first-parent -- ./src", {
+		cwd: "D:/github/developit/preact"
+	});
 	console.log(commits);
+
+	const fetch = createFetch(access_token);
+	const prs = await Promise.all(
+		commits.map(
+			async commit =>
+				(await fetchAssociatedPRs(fetch, commit.oid, "developit/preact", 1))[0]
+		)
+	);
+
+	console.log(prs);
+
+	for (let i = 0; i < commits.length; i++) {
+		let commit = commits[i];
+		let prCommit = prs[i].mergeCommit;
+		console.log(commit.oid == prCommit.oid, commit.oid, prCommit.oid);
+	}
 }
 
 // getPRs();
