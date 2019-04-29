@@ -3,9 +3,9 @@
   "version": "0.0.1",
   "description": "Get the size of PRs from a Github Repo",
   "main": "dist/git-pr-size.js",
-  "module": "src/index.js",
-  "source": "src/index.js",
-  "types": "src/index.d.ts",
+  "module": "dist/git-pr-size.module.js",
+  "source": "src/index.ts",
+  "types": "dist/src/index.d.ts",
   "scripts": {
     "build": "microbundle build",
     "prepare": "npm run build",
@@ -13,6 +13,10 @@
     "pretest": "npm run build",
     "test": "jest --ci --coverage"
   },
+  "files": [
+    "dist",
+    "src"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/andrewiggins/git-pr-size.git"
