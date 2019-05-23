@@ -3,7 +3,7 @@ import { getCommits } from "../src/git";
 
 async function getCommitsTest() {
 	const commits = await getCommits("-n 6 --first-parent -- ./src", {
-		cwd: "D:/github/developit/preact"
+		cwd: "D:/github/preactjs/preact"
 	});
 	console.log(commits);
 

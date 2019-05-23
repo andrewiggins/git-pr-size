@@ -171,13 +171,13 @@ async function test() {
 	).trim();
 
 	const commits = await getCommits("-n 6 --first-parent -- ./src", {
-		cwd: "D:/github/developit/preact"
+		cwd: "D:/github/preactjs/preact"
 	});
 	debug(commits);
 
 	async function getPRs() {
 		const fetch = createFetch(access_token);
-		const prs = await fetchMasterPRs(fetch, "developit/preact", 10);
+		const prs = await fetchMasterPRs(fetch, "preactjs/preact", 10);
 
 		debug(prs);
 	}
@@ -186,7 +186,7 @@ async function test() {
 	const prs = await Promise.all(
 		commits.map(
 			async commit =>
-				(await fetchAssociatedPRs(fetch, commit.oid, "developit/preact", 1))[0]
+				(await fetchAssociatedPRs(fetch, commit.oid, "preactjs/preact", 1))[0]
 		)
 	);
 
