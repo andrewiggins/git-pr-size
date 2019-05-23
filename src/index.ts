@@ -24,12 +24,9 @@ export async function determineSizes(
 		const results = [];
 		let prevSize: number | null = null;
 		for (let commit of commits) {
-			debug(`Checking out ${commit}...`);
 			await checkoutRef(commit, execOptions);
 
-			debug(`Measuring size....`);
 			const size = await getSize(commit);
-
 			const result: CommitSize = {
 				oid: commit,
 				size: size,
@@ -44,7 +41,7 @@ export async function determineSizes(
 
 		return results;
 	} finally {
-		debug(`Restoring initial ref "${initialRef}"...`);
+		debug(`Restoring initial ref...`);
 		await checkoutRef(initialRef, execOptions);
 	}
 }
