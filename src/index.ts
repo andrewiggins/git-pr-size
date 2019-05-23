@@ -8,11 +8,11 @@ interface CommitSize {
 	sizeDiff: number;
 }
 
-export async function determineSizes(
+export async function* determineSizes(
 	repoPath: string,
 	commits: string[],
 	getSize: (commit: string) => Promise<number>
-): Promise<CommitSize[]> {
+): AsyncIterable<CommitSize> {
 	const execOptions: ExecOptions = {
 		cwd: repoPath
 	};
@@ -21,7 +21,6 @@ export async function determineSizes(
 	debug(`Initial ref: ${initialRef}`);
 
 	try {
-		const results = [];
 		let prevSize: number | null = null;
 		for (let commit of commits) {
 			await checkoutRef(commit, execOptions);
@@ -34,12 +33,10 @@ export async function determineSizes(
 			};
 
 			debug('Result:', result);
-			results.push(result);
+			yield result;
 
 			prevSize = size;
 		}
-
-		return results;
 	} finally {
 		debug(`Restoring initial ref...`);
 		await checkoutRef(initialRef, execOptions);

@@ -29,19 +29,22 @@ async function getSize() {
 		"gzip-size.cmd --raw ./dist/preact.js --raw",
 		execOptions
 	);
-	return parseInt(stdout.trim(), 10);
+	return parseInt(stdout.toString().trim(), 10);
 }
 
 async function getCommitsTest() {
-	const commits = await getCommits("-n 6 --first-parent -- ./src", execOptions);
+	const commits = await getCommits("-n 3 --first-parent -- ./src", execOptions);
 	console.log(commits);
 
-	const sizes = await determineSizes(
+	const asyncIter = determineSizes(
 		cwd,
 		commits.reverse().map(c => c.oid),
 		getSize
 	);
-	console.log(sizes);
+
+	for await (let result of asyncIter) {
+		console.log(result);
+	}
 }
 
 getCommitsTest();

@@ -82,7 +82,12 @@ async function run() {
 		const commits = (await getCommits(args.rev)).reverse();
 		debug('Commits:', commits);
 
-		const results = await determineSizes(process.cwd(), commits.map(c => c.oid), getSize(args));
+		const asyncIter = determineSizes(process.cwd(), commits.map(c => c.oid), getSize(args));
+
+		const results = [];
+		for await (const result of asyncIter) {
+			results.push(result);
+		}
 
 		console.log(results);
 	} catch (error) {
