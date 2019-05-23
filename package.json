@@ -2,12 +2,12 @@
   "name": "git-pr-size",
   "version": "0.0.1",
   "description": "Get the size of PRs from a Github Repo",
-  "main": "dist/git-pr-size.js",
-  "module": "dist/git-pr-size.module.js",
+  "main": "dist/index.js",
+  "bin": "dist/cli.js",
+  "types": "dist/index.d.ts",
   "source": "src/index.ts",
-  "types": "dist/src/index.d.ts",
   "scripts": {
-    "build": "microbundle build",
+    "build": "tsc -p tsconfig.json",
     "prepare": "npm run build",
     "prepublishOnly": "npm run test",
     "pretest": "npm run build",
@@ -36,8 +36,8 @@
   "devDependencies": {
     "@types/jest": "^24.0.11",
     "@types/mri": "^1.1.0",
+    "@types/node-fetch": "^2.3.4",
     "jest": "^24.7.1",
-    "microbundle": "^0.11.0",
     "ts-jest": "^24.0.2"
   },
   "jest": {

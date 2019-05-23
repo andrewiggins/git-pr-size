@@ -2,13 +2,14 @@ import mri from "mri";
 import { logError, debug, setDebug } from "./logger";
 import { determineSizes } from "./index";
 import { getCommits } from "./git";
+import { execAsync } from "./cmd";
 
 interface CliArgs {
 	_: string;
 	help: boolean;
 	version: boolean;
 	cmd: string;
-	revision: string;
+	rev: string;
 	debug: boolean;
 }
 
@@ -54,13 +55,14 @@ function parseArgs(argv: string[]): CliArgs {
 		}
 	}
 
-	args.revision = args._;
+	args.rev = Array.isArray(args._) ? args._[0] : args._;
 
 	return args;
 }
 
-async function getSize() {
-	return Promise.resolve(Math.floor(Math.random() * 10 + 1));
+const getSize = (args: CliArgs) => async () => {
+	const { stdout } = await execAsync(args.cmd);
+	return parseInt(stdout.toString().trim(), 10)
 }
 
 async function run() {
@@ -77,10 +79,14 @@ async function run() {
 		setDebug(args.debug);
 		debug(args);
 
-		const commits = await getCommits(args.revision);
-		determineSizes(process.cwd(), commits.map(c => c.oid), getSize);
+		const commits = (await getCommits(args.rev)).reverse();
+		debug('Commits:', commits);
+
+		const results = await determineSizes(process.cwd(), commits.map(c => c.oid), getSize(args));
+
+		console.log(results);
 	} catch (error) {
-		logError(error.message);
+		logError(error.stack);
 		process.exit(1);
 	}
 }
