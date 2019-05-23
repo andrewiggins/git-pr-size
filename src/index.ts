@@ -2,7 +2,7 @@ import { debug } from "./logger";
 import { checkoutRef, getCurrentRef } from "./git";
 import { ExecOptions, exec } from "child_process";
 
-interface CommitSize {
+export interface CommitSize {
 	oid: string;
 	size: number;
 	sizeDiff: number;

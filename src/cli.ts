@@ -1,7 +1,7 @@
 import mri from "mri";
 import { logError, debug, setDebug } from "./logger";
-import { determineSizes } from "./index";
-import { getCommits } from "./git";
+import { determineSizes, CommitSize } from "./index";
+import { getCommits, Commit } from "./git";
 import { execAsync } from "./cmd";
 
 interface CliArgs {
@@ -65,6 +65,11 @@ const getSize = (args: CliArgs) => async () => {
 	return parseInt(stdout.toString().trim(), 10)
 }
 
+function logResult(args: CliArgs, commit: Commit, sizeInfo: CommitSize) {
+	const diff = sizeInfo.sizeDiff > 0 ? `+${sizeInfo.sizeDiff}` : sizeInfo.sizeDiff.toString();
+	console.log(`${sizeInfo.size}\t${diff}\t${commit.subject}`);
+}
+
 async function run() {
 	try {
 		const args = parseArgs(process.argv.slice(2));
@@ -82,14 +87,17 @@ async function run() {
 		const commits = (await getCommits(args.rev)).reverse();
 		debug('Commits:', commits);
 
+		const commitMap: Record<string, Commit> = {};
+		for (let commit of commits) {
+			commitMap[commit.oid] = commit;
+		}
+
 		const asyncIter = determineSizes(process.cwd(), commits.map(c => c.oid), getSize(args));
 
 		const results = [];
 		for await (const result of asyncIter) {
-			results.push(result);
+			logResult(args, commitMap[result.oid], result);
 		}
-
-		console.log(results);
 	} catch (error) {
 		logError(error.stack);
 		process.exit(1);
