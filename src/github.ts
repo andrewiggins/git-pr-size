@@ -1,5 +1,10 @@
 // Stolen from https://github.com/marvinhagemeister/changelogged/blob/master/src/api.ts :P
 
+import * as path from "path";
+import { readFileSync } from "fs";
+import { debug } from "./logger";
+import { getCommits } from "./git";
+
 import fetch from "isomorphic-unfetch";
 
 export type Fetcher = (query: string, variables?: any) => Promise<any>;
@@ -158,3 +163,41 @@ export async function fetchAssociatedPRs(
 
 	return data.data.repository.object.associatedPullRequests.nodes;
 }
+
+async function test() {
+	const access_token = readFileSync(
+		path.join(__dirname, ".access_token"),
+		"utf8"
+	).trim();
+
+	const commits = await getCommits("-n 6 --first-parent -- ./src", {
+		cwd: "D:/github/developit/preact"
+	});
+	debug(commits);
+
+	async function getPRs() {
+		const fetch = createFetch(access_token);
+		const prs = await fetchMasterPRs(fetch, "developit/preact", 10);
+
+		debug(prs);
+	}
+
+	const fetch = createFetch(access_token);
+	const prs = await Promise.all(
+		commits.map(
+			async commit =>
+				(await fetchAssociatedPRs(fetch, commit.oid, "developit/preact", 1))[0]
+		)
+	);
+
+	console.log(prs);
+
+	for (let i = 0; i < commits.length; i++) {
+		let commit = commits[i];
+		let prCommit = prs[i].mergeCommit;
+		console.log(commit.oid == prCommit.oid, commit.oid, prCommit.oid);
+	}
+
+}
+
+test();
