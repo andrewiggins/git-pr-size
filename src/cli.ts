@@ -1,6 +1,7 @@
 import mri from "mri";
-import kleur from "kleur";
-import { logError } from "./logger";
+import { logError, debug, setDebug } from "./logger";
+import { determineSizes } from "./size";
+import { getCommits } from "./git";
 
 interface CliArgs {
 	_: string;
@@ -8,6 +9,7 @@ interface CliArgs {
 	version: boolean;
 	cmd: string;
 	revision: string;
+	debug: boolean;
 }
 
 const help = `
@@ -20,6 +22,7 @@ Options:
   --help, -h      Show usage information and the options listed here
   --version, -v   Show version information
   --cmd           The command to run to determine the size
+  --debug         Output debug information to stdout
 
 Examples:
   Get all sizes of commits made starting from a git tag
@@ -31,7 +34,7 @@ Examples:
 
 function parseArgs(argv: string[]): CliArgs {
 	const args: CliArgs = mri(argv, {
-		boolean: ["help", "version"],
+		boolean: ["help", "version", "debug"],
 		string: ["cmd"],
 		alias: {
 			h: "help",
@@ -67,9 +70,9 @@ async function run() {
 			return;
 		}
 
-		console.log(args);
-	}
-	catch (error) {
+		setDebug(args.debug);
+		debug(args);
+	} catch (error) {
 		logError(error.message);
 		process.exit(1);
 	}
