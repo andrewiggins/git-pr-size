@@ -1,17 +1,28 @@
-import { getCommits } from "./git";
-import { determineSizes } from "./size";
 import { debug } from "./logger";
 
-async function getCommitsTest() {
-	const commits = await getCommits("-n 6 --first-parent -- ./src", {
-		cwd: "D:/github/developit/preact"
-	});
-	debug(commits);
-
-	const getSize = () => Promise.resolve(Math.floor(Math.random() * 10 + 1));
-	const sizes = await determineSizes(commits.map(c => c.oid), getSize);
-	debug(sizes);
+interface CommitSize {
+	oid: string;
+	size: number;
+	sizeDiff: number;
 }
 
-// getPRs();
-getCommitsTest();
+export async function determineSizes(
+	commits: string[],
+	getSize: (commit: string) => Promise<number>
+): Promise<CommitSize[]> {
+	const result = [];
+
+	let prevSize: number | null = null;
+	for (let commit of commits) {
+		const size = await getSize(commit);
+		result.push({
+			oid: commit,
+			size: size,
+			sizeDiff: prevSize == null ? 0 : size - prevSize
+		});
+
+		prevSize = size;
+	}
+
+	return result;
+}

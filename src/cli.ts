@@ -1,6 +1,6 @@
 import mri from "mri";
 import { logError, debug, setDebug } from "./logger";
-import { determineSizes } from "./size";
+import { determineSizes } from "./index";
 import { getCommits } from "./git";
 
 interface CliArgs {
@@ -72,6 +72,10 @@ async function run() {
 
 		setDebug(args.debug);
 		debug(args);
+
+		const commits = await getCommits(args.revision);
+		const getSize = () => Promise.resolve(Math.floor(Math.random() * 10 + 1));
+		determineSizes(commits.map(c => c.oid), getSize);
 	} catch (error) {
 		logError(error.message);
 		process.exit(1);
