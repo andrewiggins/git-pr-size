@@ -39,3 +39,16 @@ export async function getCommits(logArgs?: string, options?: ExecOptions): Promi
 	const { stdout } = await execAsync(cmd, options);
 	return parseLogOutput(stdout.toString());
 }
+
+export async function getCurrentRef(options?: ExecOptions): Promise<string> {
+	let output = await execAsync(`git symbolic-ref --short -q HEAD`, options);
+	if (!output.stdout.toString().trim()) {
+		output = await execAsync(`git rev-parse --short HEAD`, options);
+	}
+
+	return output.stdout.toString().trim();
+}
+
+export async function checkoutRef(ref: string, options?: ExecOptions): Promise<void> {
+	await execAsync(`git checkout ${ref}`, options);
+}

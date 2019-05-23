@@ -1,4 +1,6 @@
 import { debug } from "./logger";
+import { checkoutRef, getCurrentRef } from "./git";
+import { ExecOptions, exec } from "child_process";
 
 interface CommitSize {
 	oid: string;
@@ -7,22 +9,42 @@ interface CommitSize {
 }
 
 export async function determineSizes(
+	repoPath: string,
 	commits: string[],
 	getSize: (commit: string) => Promise<number>
 ): Promise<CommitSize[]> {
-	const result = [];
+	const execOptions: ExecOptions = {
+		cwd: repoPath
+	};
 
-	let prevSize: number | null = null;
-	for (let commit of commits) {
-		const size = await getSize(commit);
-		result.push({
-			oid: commit,
-			size: size,
-			sizeDiff: prevSize == null ? 0 : size - prevSize
-		});
+	const initialRef = await getCurrentRef(execOptions);
+	debug(`Initial ref: ${initialRef}`);
 
-		prevSize = size;
+	try {
+		const results = [];
+		let prevSize: number | null = null;
+		for (let commit of commits) {
+			debug(`Checking out ${commit}...`);
+			await checkoutRef(commit, execOptions);
+
+			debug(`Measuring size....`);
+			const size = await getSize(commit);
+
+			const result: CommitSize = {
+				oid: commit,
+				size: size,
+				sizeDiff: prevSize == null ? 0 : size - prevSize
+			};
+
+			debug('Result:', result);
+			results.push(result);
+
+			prevSize = size;
+		}
+
+		return results;
+	} finally {
+		debug(`Restoring initial ref "${initialRef}"...`);
+		await checkoutRef(initialRef, execOptions);
 	}
-
-	return result;
 }

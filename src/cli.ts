@@ -59,6 +59,10 @@ function parseArgs(argv: string[]): CliArgs {
 	return args;
 }
 
+async function getSize() {
+	return Promise.resolve(Math.floor(Math.random() * 10 + 1));
+}
+
 async function run() {
 	try {
 		const args = parseArgs(process.argv.slice(2));
@@ -74,8 +78,7 @@ async function run() {
 		debug(args);
 
 		const commits = await getCommits(args.revision);
-		const getSize = () => Promise.resolve(Math.floor(Math.random() * 10 + 1));
-		determineSizes(commits.map(c => c.oid), getSize);
+		determineSizes(process.cwd(), commits.map(c => c.oid), getSize);
 	} catch (error) {
 		logError(error.message);
 		process.exit(1);
