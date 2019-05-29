@@ -8,6 +8,6 @@ export function execAsync(
 	cmd: string,
 	options?: ExecOptions
 ): ReturnType<typeof _execAsync> {
-	debug(`Executing ${cmd}...`);
+	debug(`Executing ${cmd}`);
 	return _execAsync(cmd, options);
 }

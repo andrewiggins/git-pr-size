@@ -30,14 +30,17 @@ async function getSize() {
 		"gzip-size.cmd --raw ./dist/preact.js --raw",
 		execOptions
 	);
+
+	await execAsync("git checkout -- .", execOptions);
+
 	return parseInt(stdout.toString().trim(), 10);
 }
 
 async function getCommitsTest() {
 	const commits = (await getCommits(
-        // "50f7f7..HEAD -- ./src",
+		"50f7f7..HEAD -- ./src",
 		// "master~2..HEAD -- ./src",
-		"-n 6 -- ./src",
+		// "-n 6 -- ./src",
 		execOptions
 	)).reverse();
 	console.log(commits);
