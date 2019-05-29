@@ -5,11 +5,16 @@ export interface Commit {
 	/** The object id (i.e. hash or sha1) of the commit */
 	oid: string;
 
+	/** The short version of the object id (i.e. hash or sha1) of the commit */
+	shortOid: string;
+
 	/** The subject of the commit */
 	subject: string;
 }
 
-const logFormat = ' --pretty="format:%H %s" --first-parent ';
+const logRegex = /(\w+) (\w+) (.*)/i
+
+const logFormat = ' --pretty="format:%H %h %s" --first-parent ';
 function getLogCommand(oldArgs = '') {
 	const i = oldArgs.search(/(?:\W|^)--(?:\W|$)/);
 	const cmd = "git log ";
@@ -26,10 +31,15 @@ function parseLogOutput(stdout: string): Commit[] {
 		.split("\n")
 		.map(line => line.trim())
 		.map(line => {
-			const i = line.indexOf(" ");
+			const match = line.match(logRegex);
+			if (match == null) {
+				throw new Error('git log output did not match expected format.');
+			}
+
 			return {
-				oid: line.slice(0, i),
-				subject: line.slice(i + 1)
+				oid: match[1],
+				shortOid: match[2],
+				subject: match[3]
 			};
 		});
 }

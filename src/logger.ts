@@ -22,5 +22,5 @@ export function logResult(commit: Commit, sizeInfo: CommitSize) {
 		sizeInfo.sizeDiff > 0
 			? `+${sizeInfo.sizeDiff}`
 			: sizeInfo.sizeDiff.toString();
-	console.log(`${sizeInfo.size}\t${diff}\t${commit.subject}`);
+	console.log(`${commit.shortOid}\t${sizeInfo.size}\t${diff}\t${commit.subject}`);
 }
