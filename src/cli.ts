@@ -62,11 +62,14 @@ function parseArgs(argv: string[]): CliArgs {
 
 const getSize = (args: CliArgs) => async () => {
 	const { stdout } = await execAsync(args.cmd);
-	return parseInt(stdout.toString().trim(), 10)
-}
+	return parseInt(stdout.toString().trim(), 10);
+};
 
 function logResult(args: CliArgs, commit: Commit, sizeInfo: CommitSize) {
-	const diff = sizeInfo.sizeDiff > 0 ? `+${sizeInfo.sizeDiff}` : sizeInfo.sizeDiff.toString();
+	const diff =
+		sizeInfo.sizeDiff > 0
+			? `+${sizeInfo.sizeDiff}`
+			: sizeInfo.sizeDiff.toString();
 	console.log(`${sizeInfo.size}\t${diff}\t${commit.subject}`);
 }
 
@@ -85,14 +88,18 @@ async function run() {
 		debug(args);
 
 		const commits = (await getCommits(args.rev)).reverse();
-		debug('Commits:', commits);
+		debug("Commits:", commits);
 
 		const commitMap: Record<string, Commit> = {};
 		for (let commit of commits) {
 			commitMap[commit.oid] = commit;
 		}
 
-		const asyncIter = determineSizes(process.cwd(), commits.map(c => c.oid), getSize(args));
+		const asyncIter = determineSizes(
+			process.cwd(),
+			commits.map(c => c.oid),
+			getSize(args)
+		);
 
 		const results = [];
 		for await (const result of asyncIter) {
