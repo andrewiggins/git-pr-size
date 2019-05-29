@@ -1,5 +1,5 @@
 import mri from "mri";
-import { logError, debug, setDebug } from "./logger";
+import { logError, debug, setDebug, logResult } from "./logger";
 import { determineSizes, CommitSize } from "./index";
 import { getCommits, Commit } from "./git";
 import { execAsync } from "./cmd";
@@ -65,14 +65,6 @@ const getSize = (args: CliArgs) => async () => {
 	return parseInt(stdout.toString().trim(), 10);
 };
 
-function logResult(args: CliArgs, commit: Commit, sizeInfo: CommitSize) {
-	const diff =
-		sizeInfo.sizeDiff > 0
-			? `+${sizeInfo.sizeDiff}`
-			: sizeInfo.sizeDiff.toString();
-	console.log(`${sizeInfo.size}\t${diff}\t${commit.subject}`);
-}
-
 async function run() {
 	try {
 		const args = parseArgs(process.argv.slice(2));
@@ -103,7 +95,7 @@ async function run() {
 
 		const results = [];
 		for await (const result of asyncIter) {
-			logResult(args, commitMap[result.oid], result);
+			logResult(commitMap[result.oid], result);
 		}
 	} catch (error) {
 		logError(error.stack);

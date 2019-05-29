@@ -2,8 +2,9 @@ import * as path from "path";
 import { readFile, writeFile } from "fs";
 import { promisify } from "util";
 import { determineSizes } from "../src";
-import { getCommits } from "../src/git";
+import { getCommits, Commit } from "../src/git";
 import { execAsync } from "../src/cmd";
+import { logResult } from "../src/logger";
 
 const readFileAsync = promisify(readFile);
 const writeFileAsync = promisify(writeFile);
@@ -33,17 +34,27 @@ async function getSize() {
 }
 
 async function getCommitsTest() {
-	const commits = await getCommits("-n 3 --first-parent -- ./src", execOptions);
+	const commits = (await getCommits(
+		"--first-parent master~2..HEAD -- ./src",
+		execOptions
+	)).reverse();
 	console.log(commits);
 
-	const asyncIter = determineSizes(
-		cwd,
-		commits.reverse().map(c => c.oid),
-		getSize
-	);
+	const commitMap: Record<string, Commit> = {};
+	for (let commit of commits) {
+		commitMap[commit.oid] = commit;
+	}
 
+	const asyncIter = determineSizes(cwd, commits.map(c => c.oid), getSize);
+
+	const results = [];
 	for await (let result of asyncIter) {
-		console.log(result);
+		results.push(result);
+	}
+
+	// Log all commits at the end
+	for (let result of results) {
+		logResult(commitMap[result.oid], result);
 	}
 }
 
