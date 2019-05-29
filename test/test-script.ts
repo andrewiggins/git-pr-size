@@ -35,8 +35,9 @@ async function getSize() {
 
 async function getCommitsTest() {
 	const commits = (await getCommits(
-		// "--first-parent master~2..HEAD -- ./src",
-		"--first-parent -n 6 -- ./src",
+        // "50f7f7..HEAD -- ./src",
+		// "master~2..HEAD -- ./src",
+		"-n 6 -- ./src",
 		execOptions
 	)).reverse();
 	console.log(commits);
