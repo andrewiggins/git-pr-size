@@ -33,21 +33,22 @@
     "url": "https://github.com/andrewiggins/git-pr-size/issues"
   },
   "homepage": "https://github.com/andrewiggins/git-pr-size#readme",
+  "dependencies": {
+    "isomorphic-unfetch": "^3.0.0",
+    "kleur": "^4.0.2",
+    "mri": "^1.1.6"
+  },
   "devDependencies": {
-    "@types/jest": "^24.0.11",
+    "@types/jest": "^26.0.7",
     "@types/mri": "^1.1.0",
-    "@types/node-fetch": "^2.3.4",
-    "jest": "^24.7.1",
-    "ts-jest": "^24.0.2"
+    "@types/node-fetch": "^2.5.7",
+    "jest": "^26.1.0",
+    "ts-jest": "^26.1.4",
+    "typescript": "^3.9.7"
   },
   "jest": {
     "transform": {
       "^.+\\.tsx?$": "ts-jest"
     }
-  },
-  "dependencies": {
-    "isomorphic-unfetch": "^3.0.0",
-    "kleur": "^3.0.3",
-    "mri": "^1.1.4"
   }
 }
